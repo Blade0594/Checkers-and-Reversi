@@ -1,0 +1,35 @@
+How to install CheckersWeb... top linux.
+
+1) Installing mono:
+
+sudo apt-get install mono-complete.
+
+2)Apache server: 
+
+sudo apt-get install mono-apache-server4
+
+3)Install xsp4...:
+
+sudo apt-get install mono-xsp4
+Install apache2 server
+Copy the mod-mono.conf in /etc/apache2/mods-available and in /etc/apache2/mods-enabled
+
+4) Install mysql server + mysql workbench
+
+I've done it with the software manager. Installing the server like this may not be
+optimal, as it doesn't ask me for a password for the root user.
+
+5) run script that builds the database.
+
+6)  get the CheckersWebUIASP program in a directory on the server called /var/www/CheckersWebUIASP. 
+
+7) Append to your httpd.conf in apache the contents of the provided httpd.conf
+
+8) Copy the CheckersWebUIASP.webapp to the /etc/mono-server4 directory (update the data inside if the
+directory where de ap resides is not /var/www/CheckersWebUIASP
+
+
+9) Copy the mod_mono.so and mod_mono.so.0.0.0 to /usr/lib/apache2/modules (doesn't work) :(.
+
+10) Restart the apache2 server
+

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="BoardGames">
+</Property><Property Name="Solution File" Value="E:\Scoala\Disertatie\GameAI\BoardGames.sln">
+</Property><Property Name="User Options File" Value="E:\Scoala\Disertatie\GameAI\BoardGames.suo">
+</Property><Property Name="Date" Value="Tuesday, April 13, 2010">
+</Property><Property Name="Time" Value="23:19 PM">
+</Property></Properties><Event ErrorLevel="0" Project="" Source="BoardGames.sln" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\BoardGames.sln">
+</Event><Event ErrorLevel="0" Project="" Source="BoardGames.suo" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\BoardGames.suo">
+</Event><Event ErrorLevel="0" Project="GameAI" Source="GameAI\GameAI.csproj" Description="Project file successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\GameAI\GameAI.csproj">
+</Event><Event ErrorLevel="0" Project="GameAI" Source="GameAI\Algorithms.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\GameAI\Algorithms.cs">
+</Event><Event ErrorLevel="0" Project="GameAI" Source="GameAI\IBoardGame.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\GameAI\IBoardGame.cs">
+</Event><Event ErrorLevel="0" Project="GameAI" Source="GameAI\IMove.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\GameAI\IMove.cs">
+</Event><Event ErrorLevel="0" Project="GameAI" Source="GameAI\IPlayer.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\GameAI\IPlayer.cs">
+</Event><Event ErrorLevel="0" Project="GameAI" Source="GameAI\Properties\AssemblyInfo.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\GameAI\Properties\AssemblyInfo.cs">
+</Event><Event ErrorLevel="0" Project="GameAI" Source="GameAI\GameAI.csproj" Description="Project converted successfully">
+</Event><Event ErrorLevel="3" Project="GameAI" Source="GameAI\GameAI.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\UserInterface.csproj" Description="Project file successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\UserInterface.csproj">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\App.xaml.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\App.xaml.cs">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\MainWindow.xaml.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\MainWindow.xaml.cs">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\BlackSquare.xaml.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\BlackSquare.xaml.cs">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\CheckersWindow.xaml.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\CheckersWindow.xaml.cs">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\Properties\AssemblyInfo.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\Properties\AssemblyInfo.cs">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\Properties\Resources.Designer.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\Properties\Resources.Designer.cs">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\Properties\Settings.Designer.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\Properties\Settings.Designer.cs">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\ReversiWindow.xaml.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\ReversiWindow.xaml.cs">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\Square.xaml.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\Square.xaml.cs">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\Square2.xaml.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\Square2.xaml.cs">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\WhiteSquare.xaml.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\WhiteSquare.xaml.cs">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\Properties\Settings.settings" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\Properties\Settings.settings">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\Properties\Resources.resx" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\Properties\Resources.resx">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\App.xaml" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\App.xaml">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\BlackSquare.xaml" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\BlackSquare.xaml">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\CheckersWindow.xaml" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\CheckersWindow.xaml">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\MainWindow.xaml" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\MainWindow.xaml">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\ReversiWindow.xaml" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\ReversiWindow.xaml">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\Square.xaml" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\Square.xaml">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\Square2.xaml" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\Square2.xaml">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\WhiteSquare.xaml" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\UserInterface\WhiteSquare.xaml">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\UserInterface.csproj" Description="Project converted successfully">
+</Event><Event ErrorLevel="3" Project="UserInterface" Source="UserInterface\UserInterface.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="ReversiGame" Source="ReversiGame\ReversiGame.csproj" Description="Project file successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\ReversiGame\ReversiGame.csproj">
+</Event><Event ErrorLevel="0" Project="ReversiGame" Source="ReversiGame\Properties\AssemblyInfo.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\ReversiGame\Properties\AssemblyInfo.cs">
+</Event><Event ErrorLevel="0" Project="ReversiGame" Source="ReversiGame\ReversiBoard.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\ReversiGame\ReversiBoard.cs">
+</Event><Event ErrorLevel="0" Project="ReversiGame" Source="ReversiGame\ReversiMove.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\ReversiGame\ReversiMove.cs">
+</Event><Event ErrorLevel="0" Project="ReversiGame" Source="ReversiGame\ReversiPlayer.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\ReversiGame\ReversiPlayer.cs">
+</Event><Event ErrorLevel="0" Project="ReversiGame" Source="ReversiGame\ReversiGame.csproj" Description="Project converted successfully">
+</Event><Event ErrorLevel="3" Project="ReversiGame" Source="ReversiGame\ReversiGame.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="CheckersGame" Source="CheckersGame\CheckersGame.csproj" Description="Project file successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\CheckersGame\CheckersGame.csproj">
+</Event><Event ErrorLevel="0" Project="CheckersGame" Source="CheckersGame\CheckersBoard.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\CheckersGame\CheckersBoard.cs">
+</Event><Event ErrorLevel="0" Project="CheckersGame" Source="CheckersGame\CheckersMove.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\CheckersGame\CheckersMove.cs">
+</Event><Event ErrorLevel="0" Project="CheckersGame" Source="CheckersGame\CheckersPlayer.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\CheckersGame\CheckersPlayer.cs">
+</Event><Event ErrorLevel="0" Project="CheckersGame" Source="CheckersGame\Point.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\CheckersGame\Point.cs">
+</Event><Event ErrorLevel="0" Project="CheckersGame" Source="CheckersGame\Properties\AssemblyInfo.cs" Description="File successfully backed up as E:\Scoala\Disertatie\GameAI\Backup\CheckersGame\Properties\AssemblyInfo.cs">
+</Event><Event ErrorLevel="0" Project="CheckersGame" Source="CheckersGame\CheckersGame.csproj" Description="Project converted successfully">
+</Event><Event ErrorLevel="3" Project="CheckersGame" Source="CheckersGame\CheckersGame.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="BoardGames.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="BoardGames.sln" Description="Converted">
+</Event><Event ErrorLevel="0" Project="GameAI" Source="GameAI\GameAI.csproj" Description="Scan complete: Upgrade not required for project files.">
+</Event><Event ErrorLevel="0" Project="UserInterface" Source="UserInterface\UserInterface.csproj" Description="Scan complete: Upgrade not required for project files.">
+</Event><Event ErrorLevel="0" Project="ReversiGame" Source="ReversiGame\ReversiGame.csproj" Description="Scan complete: Upgrade not required for project files.">
+</Event><Event ErrorLevel="0" Project="CheckersGame" Source="CheckersGame\CheckersGame.csproj" Description="Scan complete: Upgrade not required for project files.">
+</Event></UpgradeLog>

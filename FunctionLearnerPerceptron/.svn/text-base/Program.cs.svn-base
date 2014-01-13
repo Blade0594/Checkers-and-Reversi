@@ -1,0 +1,163 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Amib.Threading;
+using GameAI;
+using CheckersGame;
+using System.IO;
+namespace FunctionLearnerPerceptron
+{
+    class Program
+    {
+        private static readonly Random rand = new Random(DateTime.Now.Millisecond);
+        //Number of players in the initial population
+        private static readonly int initialPopulationSize = 10;
+        //Number of games that each player plays against each other
+        private static readonly double numberOfGames = 15;
+        //Maximum number of games to be played for training
+        //Number of features on the eval function
+        private static readonly int numberOfFeatures = 12;
+
+        static void Main(string[] args)
+        {
+            DataReader data = new DataReader("Initial.txt");
+            Individual weigthsPerceptron = data.GetPerceptronWeights(numberOfFeatures);
+            List<Individual> players = data.GetPopulation(numberOfFeatures);
+            int gameCounter = 0;
+            DateTime maxDate = new DateTime(2011, 10, 24, 10, 30, 00);
+            DateTime now = DateTime.Now;
+            do
+            {
+                for (int index = 0; index < players.Count; index++)
+                    for (int index2 = 0; index2 < players.Count; index2++)
+                    {
+                        if (index == index2 || players[index].Labels[index2] != 0)
+                            continue;
+                        Individual[] weights = { players[index], players[index2] };
+                        int classLabel = calculateLabel(weights);
+                        gameCounter += (int)numberOfGames;
+                        players[index].Labels[index2] = classLabel;
+                        players[index2].Labels[index] = -classLabel;
+                   
+                        
+
+                    }
+                  
+                  for (int index = 0; index < players.Count; index++)
+                      for (int index2 = 0; index2 < players.Count; index2++)
+                      {
+                          if (index != index2 && (double)players[index].Labels[index2] * weigthsPerceptron.DotProduct((players[index] - players[index2])) < 0)
+                          {
+                              Individual indiv = new Individual(players[index] - players[index2], string.Empty, 0);
+                              indiv.SetLastPos();
+                              indiv = new Individual(indiv / (double)players[index].Labels[index2], string.Empty, 0);
+                              weigthsPerceptron = new Individual(weigthsPerceptron + indiv, "Perceptron", 0);
+                          }
+                      }
+                double[] newWeights = new double[numberOfFeatures];
+                newWeights = weigthsPerceptron / weigthsPerceptron.EuclideanNorm();
+                Individual newIndividual = new Individual(newWeights, string.Empty, players.Count);
+                newIndividual.SetLastPos();
+                players.Add(newIndividual);
+                foreach (var item in players)
+                    item.Labels.Add(0);
+                FileStream file = new FileStream("Results.txt", FileMode.OpenOrCreate, FileAccess.Write);
+                StreamWriter sw = new StreamWriter(file);
+                sw.WriteLine("Played games {0}", gameCounter);
+                sw.WriteLine(weigthsPerceptron.ToString());
+                foreach (var item in players)
+                {
+                    sw.WriteLine(item.ToString());
+                }
+                sw.Close();
+                file.Close();
+                now = DateTime.Now;
+
+            }
+            while (now < maxDate);
+           
+        }
+        private static List<Individual> initializePopulation()
+        {
+            double[] randomWeights = new double[numberOfFeatures];
+            List<Individual> players = new List<Individual>();
+            for (int counter = 0; counter < initialPopulationSize; counter++)
+            {
+                randomWeights = new double[numberOfFeatures];
+                for (int index = 0; index < randomWeights.Length; index++)
+                {
+
+                    randomWeights[index] = rand.NextDouble();
+                }
+                randomWeights[randomWeights.Length - 1] = 1;
+                players.Add(new Individual(randomWeights, string.Empty, initialPopulationSize));
+            }
+            return players;
+        }
+        private static int calculateLabel(Individual[] weights)
+        {
+
+            Individual[] reversedWeights = { weights[1], weights[0] };
+            weights[1].ResetScores();
+            weights[0].ResetScores();
+            SmartThreadPool smtp = new SmartThreadPool();
+            for (int index = 0; index < numberOfGames; index++)
+            {
+
+                if (index % 2 == 1)
+                {
+                    smtp.QueueWorkItem(new WorkItemCallback(threadProc), weights);
+                }
+                else
+                {
+                    smtp.QueueWorkItem(new WorkItemCallback(threadProc), reversedWeights);
+                }
+
+            }
+            smtp.WaitForIdle();
+            smtp.Shutdown();
+            double strengthRatio = ((double)weights[0].Wins + (double)weights[0].Draws / 2) / numberOfGames;
+            return strengthRatio > 0.5 ? 1 : -1;
+        }
+        private static object threadProc(Object data)
+        {
+            Individual[] weights = data as Individual[];
+            Algorithms alg = new Algorithms(new CheckersPlayer(1));
+            CheckersBoard whiteBoard = new CheckersBoard(0, weights[0].Weights);
+            CheckersBoard blackBoard = new CheckersBoard(0, weights[1].Weights);
+            whiteBoard.GameMaxLength = 150;
+            blackBoard.GameMaxLength = 150;
+            while (!blackBoard.GameIsOver())
+            {
+                CheckersMove move = alg.ABNegamax(blackBoard, weights[1].SearchDepth, 0, double.MinValue, double.MaxValue) as CheckersMove;
+                whiteBoard.MakeMove(move);
+                blackBoard.MakeMove(move);
+                if (blackBoard.GameIsOver())
+                    break;
+                else
+                {
+                    move = alg.ABNegamax(whiteBoard, weights[0].SearchDepth, 0, double.MinValue, double.MaxValue) as CheckersMove;
+                    whiteBoard.MakeMove(move);
+                    blackBoard.MakeMove(move);
+                }
+            }
+            switch (whiteBoard.Winner)
+            {
+                case 0:
+                    weights[0].Draws += 1;
+                    weights[1].Draws += 1;
+                    break;
+                case 1:
+                    weights[0].TotalWhiteWins += 1;
+                    weights[1].Loses += 1;
+                    break;
+                case -1:
+                    weights[1].TotalBlackWins += 1;
+                    weights[0].Loses += 1;
+                    break;
+            }
+            return weights as object;
+        }
+    }
+}

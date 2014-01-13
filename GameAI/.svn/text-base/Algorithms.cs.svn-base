@@ -1,0 +1,443 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.IO;
+
+namespace GameAI
+{
+    public class Algorithms
+    {
+
+        double[] difficultyWeights = new double[7];
+        bool isFirstTurn = true;
+        int difficulty = 3;
+        int computerPlayerID;
+        System.Random random;
+        int observation = 1;
+        //Note: only used when using AdaptiveABNegamax3
+        double averageRank = -1;
+        private double max(double a, double b)
+        {
+            return a > b ? a : b;
+        }
+        private double min(double a, double b)
+        {
+            return a < b ? a : b;
+        }
+        public Algorithms(IPlayer player)
+        {
+            computerPlayerID = player.GetPlayerID();
+            random = new Random(DateTime.Now.Millisecond);
+            for (int index = 0; index < difficultyWeights.Length; index++)
+                difficultyWeights[index] = 1;
+        }
+        /// <summary>
+        /// The Minimax algortihm for the best move.
+        /// </summary>
+        /// <param name="game"></param>
+        /// <param name="maxDepth"></param>
+        /// <param name="alfa"></param>
+        /// <param name="beta"></param>
+        /// <returns></returns>
+        public IMove MiniMax(IBoardGame game, int maxDepth, double alfa, double beta)
+        {
+            if (maxDepth == 0)
+                return null;
+            IMove bestMove = null;
+            var moves = (new RandomList<IMove>(game.GetLegalMoves())).Randomize();
+            int color = game.GetCurrentPlayer().GetPlayerID();
+            foreach (var validMove in moves)
+            {
+
+
+                IBoardGame testGame = game.TestMove(validMove);
+                validMove.SetMoveScore(testGame.EvaluatePosition(game));
+                if (bestMove == null) bestMove = validMove;
+                if (!testGame.GameIsOver())
+                {
+                    IMove nextBestMove = MiniMax(testGame, maxDepth - 1, alfa, beta);
+                    if (nextBestMove != null) validMove.SetMoveScore(nextBestMove.GetMoveScore());
+                    if (color == 1 && validMove.GetMoveScore() > beta)
+                    {
+                        beta = validMove.GetMoveScore();
+                    }
+                    if (color == -1 && validMove.GetMoveScore() < alfa)
+                    {
+                        alfa = validMove.GetMoveScore();
+
+                    }
+                }
+                if (color == 1 && validMove.GetMoveScore() > alfa)
+                {
+                    validMove.SetMoveScore(alfa);
+                    return validMove;
+                }
+                if (color == -1 && validMove.GetMoveScore() < beta)
+                {
+                    validMove.SetMoveScore(beta);
+                    return validMove;
+
+                }
+                if (color * validMove.GetMoveScore() > color * bestMove.GetMoveScore())
+                    bestMove = validMove;
+
+            }
+
+            return bestMove;
+
+        }
+        public IMove ABNegamax(IBoardGame game, int maxDepth, int currentDepth, double alfa, double beta)
+        {
+            if (maxDepth == currentDepth || game.GameIsOver())
+                return game.EvaluatePosition();
+            IMove bestMove = null;
+            var moves = (new RandomList<IMove>(game.GetLegalMoves())).Randomize();
+            foreach (var validMove in moves)
+            {
+                if (bestMove == null) bestMove = validMove;
+                IBoardGame testGame = game.TestMove(validMove);
+                validMove.SetMoveScore(-(ABNegamax(testGame, maxDepth, currentDepth + 1, -beta, -max(alfa, bestMove.GetMoveScore())).GetMoveScore()));
+                if (validMove.GetMoveScore() > bestMove.GetMoveScore())
+                {
+                    bestMove = validMove;
+                }
+                if (bestMove.GetMoveScore() >= beta)
+                    return bestMove;
+
+            }
+            return bestMove;
+        }
+        public List<IMove> EvaluateMoves(IBoardGame game, int maxDepth, int currentDepth, double alfa, double beta)
+        {
+
+            List<IMove> rankedMoveList = new List<IMove>();
+            var moves = (new RandomList<IMove>(game.GetLegalMoves())).Randomize();
+            foreach (var validMove in moves)
+            {
+                IBoardGame testGame = game.TestMove(validMove);
+                validMove.SetMoveScore(-(ABNegamax(testGame, maxDepth, currentDepth + 1, -beta, -alfa)).GetMoveScore());
+                int moveRank = 0;
+                foreach (var insertedMove in rankedMoveList)
+                {
+                    if (validMove.GetMoveScore() < insertedMove.GetMoveScore())
+                        moveRank++;
+                    else break;
+                }
+                rankedMoveList.Insert(moveRank, validMove);
+                for (int index = 0; index < rankedMoveList.Count; index++)
+                {
+                    rankedMoveList[index].SetRank(index);
+                }
+
+            }
+
+            return rankedMoveList;
+
+        }
+        public IMove AdaptiveABNegamax(IBoardGame game, int maxDepth, int currentDepth, double alfa, double beta, List<IMove> opponentsList, IMove opponentsMove)
+        {
+            List<IMove> rankedMoveList = EvaluateMoves(game, maxDepth, 0, alfa, beta);
+            //FileStream file = new FileStream("Result.txt", FileMode.Append, FileAccess.Write);
+            //StreamWriter writer = new StreamWriter(file);
+            //foreach (var move in rankedMoveList)
+            //    writer.Write(move.GetMoveScore().ToString() + " ");
+            //writer.WriteLine();
+            //writer.Flush();
+            //writer.Close();
+            //file.Close();
+            int rank = 0;
+            for (int index = 0; index < opponentsList.Count; index++)
+            {
+
+                if (!opponentsList[index].IsEqual(opponentsMove)) continue;
+                else
+                {
+                    rank = index;
+                    break;
+
+                }
+            }
+            if (rank < rankedMoveList.Count)
+            {
+                while (rank >= 0 && rankedMoveList[rank].GetMoveScore() < 0)
+                {
+                    rank--;
+                }
+                if (rank >= 0)
+                    return rankedMoveList[rank];
+                else
+                    return rankedMoveList[0];
+            }
+            else
+            {
+                rank = rankedMoveList.Count - 1;
+                while (rank >= 0 && rankedMoveList[rank].GetMoveScore() < 0)
+                {
+                    rank--;
+                }
+                if (rank >= 0)
+                    return rankedMoveList[rank];
+                else
+                    return rankedMoveList[0];
+            }
+        }
+        public IMove AdaptiveABNegamax2(IBoardGame game, int maxDepth, int currentDepth, double alfa, double beta, List<IMove> opponentsList, IMove opponentsMove)
+        {
+            List<IMove> rankedMoveList = EvaluateMoves(game, maxDepth, 0, alfa, beta);
+
+            double opponentMoveScore = 0;
+            for (int index = 0; index < opponentsList.Count; index++)
+            {
+
+                if (opponentsList[index].IsEqual(opponentsMove))
+                {
+
+                    opponentMoveScore = opponentsList[index].GetMoveScore();
+                    break;
+                }
+
+
+            }
+
+            if (opponentMoveScore > rankedMoveList[0].GetMoveScore())
+            {
+                return rankedMoveList[0];
+            }
+            double result = double.MaxValue;
+            int returnIndex = 0;
+            for (int index = 0; index < rankedMoveList.Count; index++)
+            {
+                if (Math.Abs(rankedMoveList[index].GetMoveScore() - opponentMoveScore) < result)
+                {
+                    result = Math.Abs(rankedMoveList[index].GetMoveScore() - opponentMoveScore);
+                    returnIndex = index;
+
+                }
+
+            }
+            return rankedMoveList[returnIndex];
+        }
+        public IMove AdaptiveABNegamax3(IBoardGame game, int maxDepth, int currentDepth, double alfa, double beta, List<IMove> opponentsList, IMove opponentsMove)
+        {
+            List<IMove> rankedMoveList = EvaluateMoves(game, maxDepth, 0, alfa, beta);
+            int rank = 0;
+            for (int index = 0; index < opponentsList.Count; index++)
+            {
+
+                if (!opponentsList[index].IsEqual(opponentsMove)) continue;
+                else
+                {
+                    rank = index;
+                    break;
+
+                }
+            }
+            if (averageRank == -1) averageRank = rank;
+            else if (opponentsList.Count > 1)
+            {
+                averageRank = (averageRank + ((double)rank) / opponentsList.Count) / 2;
+
+            }
+            double distance = double.MaxValue;
+            int returnedRank = 0;
+            for (int index = 0; index < rankedMoveList.Count; index++)
+                if (distance > Math.Abs(((double)averageRank - (double)index) / rankedMoveList.Count))
+                {
+                    distance = Math.Abs((double)averageRank - (double)index / (double)rankedMoveList.Count);
+                    returnedRank = index;
+                }
+            if (rankedMoveList[returnedRank].GetMoveScore() < 0)
+                for (int index = returnedRank; index < 0; index--)
+                    if (rankedMoveList[index].GetMoveScore() < 0)
+                        continue;
+                    else
+                    {
+                        returnedRank = index;
+                        break;
+                    }
+           
+            return rankedMoveList[returnedRank];
+
+        }
+        public IMove POSM(IBoardGame game,double learningFractor,string path)
+        {
+            
+
+            if (isFirstTurn)
+            {
+                isFirstTurn = false;
+                return ABNegamax(game, difficulty + 2, 0, double.MinValue, double.MaxValue);
+            }
+            //FileStream file = new FileStream(path, FileMode.Append, FileAccess.Write);
+            //StreamWriter stream = new StreamWriter(file);
+            IMove observedMove = ABNegamax(game, 8, 0, double.MinValue, double.MaxValue);
+            if (Math.Abs(observedMove.GetMoveScore()) < 1.5)
+            {
+                //stream.WriteLine("Observation: {0} difficulty: {1}", observedMove.GetMoveScore().ToString(), difficulty.ToString());
+                //observation++;
+                //stream.Flush();
+                //stream.Close();
+                //file.Close();
+                //file.Dispose();
+                return ABNegamax(game, difficulty + 1, 0, double.MinValue, double.MaxValue);
+            }   
+            if (observedMove.GetMoveScore() > 0)
+            {
+                for (int index = difficulty; index < difficultyWeights.Length ; index++)
+                    difficultyWeights[index] *= learningFractor; 
+                
+            }
+            else
+            {
+                for (int index = difficulty; index >= 0; index--)
+                    difficultyWeights[index] *= learningFractor;
+            
+            }
+            double []above = new double[difficultyWeights.Length];
+            double []below = new double[difficultyWeights.Length];
+            double sum = 0;
+            for (int index = 0; index < difficultyWeights.Length; index++)
+            {
+                below[index] = sum + difficultyWeights[index];
+                sum = below[index];
+            
+            }
+            sum = 0;
+            for (int index = difficultyWeights.Length - 1; index >= 0; index--)
+            {
+                above[index] = sum + difficultyWeights[index];
+                sum = above[index];
+            }
+            double maxValue = double.MinValue;
+            for (int index = 0; index < difficultyWeights.Length; index++)
+            {
+                if (min(above[index], below[index]) == below[index])
+                {
+                    if (below[index] >= maxValue)
+                    {
+                        maxValue = below[index];
+                        difficulty = index;
+                    }
+                }
+                else
+                {
+                    if (above[index] >= maxValue)
+                    {
+                        maxValue = above[index];
+                        difficulty = index;
+                    }
+
+                }
+            
+            }
+            //stream.WriteLine("Observation: {0} difficulty: {1}", observedMove.GetMoveScore().ToString(), difficulty.ToString());
+            observation++;
+            //stream.Flush();
+            //stream.Close();
+            //file.Close();
+            //file.Dispose();
+            return ABNegamax(game, difficulty + 1, 0, double.MinValue, double.MaxValue);
+
+        }
+        public IMove POSM2(IBoardGame game, double learningFractor, string path)
+        {
+            if (isFirstTurn)
+            {
+                isFirstTurn = false;
+                return ABNegamax(game, difficulty + 1, 0, double.MinValue, double.MaxValue);
+            }
+            //FileStream file = new FileStream(path, FileMode.Append, FileAccess.Write);
+            //StreamWriter stream = new StreamWriter(file);
+            List<IMove> rankedMoveList = EvaluateMoves(game, 8, 0, double.MinValue, double.MaxValue);
+            double average = 0;
+            foreach (var item in rankedMoveList)
+            {
+                if (item.GetMoveScore() == double.MaxValue)
+                    average += 100;
+                else if (item.GetMoveScore() == double.MinValue)
+                    average -= 100;
+                else
+                {
+                    average += item.GetMoveScore();
+                }
+            }
+            average /= rankedMoveList.Count;
+
+
+
+            if (Math.Abs(average) < 1)
+            {
+                //stream.WriteLine("Observation: {0} difficulty: {1}", average, difficulty.ToString());
+                //observation++;
+                //stream.Flush();
+                //stream.Close();
+                //file.Close();
+                //file.Dispose();
+                return rankedMoveList[0];
+            }
+            if (average > 0)
+            {
+                for (int index = difficulty; index < difficultyWeights.Length; index++)
+                    difficultyWeights[index] *= learningFractor;
+
+            }
+            else
+            {
+                for (int index = difficulty; index >= 0; index--)
+                    difficultyWeights[index] *= learningFractor;
+
+            }
+            double[] above = new double[difficultyWeights.Length];
+            double[] below = new double[difficultyWeights.Length];
+            double sum = 0;
+            for (int index = 0; index < difficultyWeights.Length; index++)
+            {
+                below[index] = sum + difficultyWeights[index];
+                sum = below[index];
+
+            }
+            sum = 0;
+            for (int index = difficultyWeights.Length - 1; index >= 0; index--)
+            {
+                above[index] = sum + difficultyWeights[index];
+                sum = above[index];
+            }
+            double maxValue = double.MinValue;
+            for (int index = 0; index < difficultyWeights.Length; index++)
+            {
+                if (min(above[index], below[index]) == below[index])
+                {
+                    if (below[index] >= maxValue)
+                    {
+                        maxValue = below[index];
+                        difficulty = index;
+                    }
+                }
+                else
+                {
+                    if (above[index] >= maxValue)
+                    {
+                        maxValue = above[index];
+                        difficulty = index;
+                    }
+
+                }
+
+            }
+            //stream.WriteLine("Observation: {0} difficulty: {1}", average, difficulty.ToString());
+            observation++;
+            //stream.Flush();
+            //stream.Close();
+            //file.Close();
+            //file.Dispose();
+            return ABNegamax(game, difficulty + 1, 0, double.MinValue, double.MaxValue);
+
+        }
+        public int ComputerPlayerID
+        {
+            get { return this.computerPlayerID; }
+        }
+    }
+}

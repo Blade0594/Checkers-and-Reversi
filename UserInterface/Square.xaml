@@ -1,0 +1,63 @@
+﻿<UserControl
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d"
+	x:Class="UserInterface.Square"
+	x:Name="UserControl"
+	d:DesignWidth="640" d:DesignHeight="480">
+	<UserControl.Resources>
+		<ImageBrush x:Key="BlackEllipse" ImageSource="Bla.png"/>
+		<ImageBrush x:Key="WhiteEllipse" ImageSource="Bla2.png"/>
+		<Storyboard x:Key="SpinBlackWhite">
+			<ColorAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="rectangle" Storyboard.TargetProperty="(Shape.Fill).(SolidColorBrush.Color)">
+				<SplineColorKeyFrame KeyTime="00:00:02" Value="#FF22B14C"/>
+			</ColorAnimationUsingKeyFrames>
+		</Storyboard>
+		<Storyboard x:Key="SpinWhiteBlack"/>
+		<DrawingBrush x:Key="blackEllipse" Viewbox="0,0,48,48" ViewboxUnits="Absolute">
+			<DrawingBrush.Drawing>
+				<GeometryDrawing>
+					<GeometryDrawing.Brush>
+						<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+							<GradientStop Color="#FF646364" Offset="0"/>
+							<GradientStop Color="#FF322F30" Offset="1"/>
+						</LinearGradientBrush>
+					</GeometryDrawing.Brush>
+					<GeometryDrawing.Geometry>
+						<EllipseGeometry Center="24,24" RadiusX="23.5" RadiusY="23.5"/>
+					</GeometryDrawing.Geometry>
+					<GeometryDrawing.Pen>
+						<Pen Brush="Black" DashCap="Flat" EndLineCap="Flat" LineJoin="Miter" MiterLimit="10" StartLineCap="Flat" Thickness="1"/>
+					</GeometryDrawing.Pen>
+				</GeometryDrawing>
+			</DrawingBrush.Drawing>
+		</DrawingBrush>
+		<DrawingBrush x:Key="whiteEllipse" Viewbox="0,0,48,48" ViewboxUnits="Absolute">
+			<DrawingBrush.Drawing>
+				<GeometryDrawing>
+					<GeometryDrawing.Brush>
+						<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+							<GradientStop Color="#FFE9746C" Offset="0"/>
+							<GradientStop Color="#FF7F0A14" Offset="1"/>
+						</LinearGradientBrush>
+					</GeometryDrawing.Brush>
+					<GeometryDrawing.Geometry>
+						<EllipseGeometry Center="24,24" RadiusX="23.5" RadiusY="23.5"/>
+					</GeometryDrawing.Geometry>
+					<GeometryDrawing.Pen>
+						<Pen Brush="Black" DashCap="Flat" EndLineCap="Flat" LineJoin="Miter" MiterLimit="10" StartLineCap="Flat" Thickness="1"/>
+					</GeometryDrawing.Pen>
+				</GeometryDrawing>
+			</DrawingBrush.Drawing>
+		</DrawingBrush>
+	</UserControl.Resources>
+	<UserControl.Triggers>
+		<EventTrigger RoutedEvent="FrameworkElement.Loaded"/>
+	</UserControl.Triggers>
+
+	<Grid x:Name="LayoutRoot">
+		<Rectangle x:Name="rectangle" Stroke="Black" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Height="50" Fill="#FF72B3F3"/>
+	</Grid>
+</UserControl>

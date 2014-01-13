@@ -1,0 +1,773 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using GameAI;
+namespace CheckersGame
+{
+    public class CheckersBoard : IBoardGame
+    {
+        private int[,] gameBoard;
+        private double blackPieceCount;
+        private double blackKingCount;
+        private double whitePieceCount;
+        private double whiteKingcount;
+        private double whiteKingBlocked;
+        private double whiteSidePieces;
+        private double blackSidePieces;
+        private double blackKingBlocked;
+        private double whiteDogHole;
+        private double blackDogHole;
+        private double trappedWhiteKing;
+        private double trappedBlackKing;
+        private double whiteDustHole;
+        private double blackDustHole;
+        private double whiteKingCentered;
+        private double blackKingCentered;
+        private double whitePieceCentered;
+        private double blackPieceCentered;
+        private double[] weights;
+        private int completedMovesCount = 0;
+        private int initRow;
+        private static readonly int WhitePiece = 1;
+        private static readonly int BlackPiece = -1;
+        private static readonly int Empty = 0;
+        private static readonly int BlackKing = -2;
+        private static readonly int WhiteKing = 2;
+        private bool gameOver = false;
+        private int initCol;
+        private CheckersPlayer[] players;
+        private List<CheckersMove> legalMoves = new List<CheckersMove>();
+        private CheckersPlayer currentPlayer;
+        public delegate void EndGame();
+        public event EndGame GameOver;
+        public int Winner { get; private set; }
+        #region Constructors
+        public CheckersBoard(int player, double[] weights)
+        {
+            if (player != 0 && player != 1) throw new ArgumentException("Value must be 0 or 1");
+            this.gameBoard = new int[8, 8];
+            this.whiteKingcount = 0;
+            this.whitePieceCount = 12;
+            this.blackKingCount = 0;
+            this.blackPieceCount = 12;
+            this.players = new CheckersPlayer[2];
+            this.players[1] = new CheckersPlayer(1);
+            this.players[0] = new CheckersPlayer(-1);
+            this.currentPlayer = players[player];
+            this.SetForNewGame();
+            this.weights = new double[weights.Length];
+
+
+            for (int index = 0; index < this.weights.Length; ++index)
+                this.weights[index] = weights[index];
+            this.GameOver += new EndGame(calculateWinner);
+            this.GameMaxLength = 200;
+        }
+        public CheckersBoard(CheckersBoard board, bool isVisualBoard)
+        {
+            this.gameBoard = new int[8, 8];
+            this.players = new CheckersPlayer[2];
+            for (int row = 0; row < 8; ++row)
+                for (int col = 0; col < 8; ++col)
+                {
+                    this.gameBoard[row, col] = board.gameBoard[row, col];
+
+                }
+            this.weights = new double[board.weights.Length];
+            for (int index = 0; index < this.weights.Length; ++index)
+                this.weights[index] = board.weights[index];
+            this.players[1] = new CheckersPlayer(1);
+            this.players[0] = new CheckersPlayer(-1);
+            if (board.currentPlayer.GetPlayerID() == 1)
+                this.currentPlayer = players[1];
+            else
+                this.currentPlayer = players[0];
+            this.GameOver += new EndGame(calculateWinner);
+            this.GameMaxLength = board.GameMaxLength;
+            if (isVisualBoard)
+                GameOver = board.GameOver;
+            this.updateLegalMoves();
+            if (legalMoves.Count > 0)
+                this.updateCounters();
+        }
+        public CheckersBoard(int[,] gameBoard, double[] weights, int player)
+        {
+            this.gameBoard = new int[8, 8];
+            this.players = new CheckersPlayer[2];
+            this.players[1] = new CheckersPlayer(1);
+            this.players[0] = new CheckersPlayer(-1);
+            this.currentPlayer = players[player];
+            this.weights = new double[weights.Length];
+            for (int index = 0; index < this.weights.Length; ++index)
+                this.weights[index] = weights[index];
+            for (int row = 0; row < 8; ++row)
+                for (int col = 0; col < 8; ++col)
+                {
+                    this.gameBoard[row, col] = gameBoard[row, col];
+
+                }
+            this.updateLegalMoves();
+            this.updateCounters();
+            this.GameMaxLength = 200;
+            this.GameOver += new EndGame(calculateWinner);
+        }
+
+        #endregion
+        #region Private Methods
+        private void calculateWinner()
+        {
+            if (this.completedMovesCount < GameMaxLength)
+            {
+                if (this.currentPlayer.GetPlayerID() == 1) Winner = -1;
+                else Winner = 1;
+            }
+            else
+                Winner = 0;
+            gameOver = true;
+        }
+        private void updateCounters()
+        {
+            this.whiteSidePieces = 0;
+            this.blackSidePieces = 0;
+            this.blackPieceCount = 0;
+            this.whitePieceCount = 0;
+            this.blackKingBlocked = 0;
+            this.whiteKingBlocked = 0;
+            this.whiteKingcount = 0;
+            this.blackKingCount = 0;
+            this.whitePieceCentered = 0;
+            this.blackPieceCentered = 0;
+            this.whiteKingCentered = 0;
+            this.blackKingCentered = 0;
+            for (int row = 0; row < 8; ++row)
+                for (int col = 0; col < 8; ++col)
+                    switch (this.gameBoard[row, col])
+                    {
+                        case 0: break;
+                        case 1:
+                            ++whitePieceCount;
+                            if (row == 0) blackKingBlocked++;
+                            if (row == 0 || row == 7 || col == 0 || col == 7)
+                                whiteSidePieces++;
+                            if ((row == 3 && (col == 2 || col == 4)) || (row == 4 && (col == 3 || col == 5)))
+                                whitePieceCentered++;
+                            break;
+                        case 2:
+                            ++whiteKingcount;
+                            if (row == 0) blackKingBlocked++;
+                            if (row == 0 || row == 7 || col == 0 || col == 7)
+                                whiteSidePieces++;
+                            if ((row == 3 && (col == 2 || col == 4)) || (row == 4 && (col == 3 || col == 5)))
+                                whiteKingCentered++;
+                            break;
+                        case -1:
+                            ++blackPieceCount;
+                            if (row == 7) whiteKingBlocked++;
+                            if (row == 0 || row == 7 || col == 0 || col == 7)
+                                blackSidePieces++;
+                            if ((row == 3 && (col == 2 || col == 4)) || (row == 4 && (col == 3 || col == 5)))
+                                blackPieceCentered++;
+                            break;
+                        case -2:
+                            ++blackKingCount;
+                            if (row == 7) whiteKingBlocked++;
+                            if (row == 0 || row == 7 || col == 0 || col == 7)
+                                blackSidePieces++;
+                            if ((row == 3 && (col == 2 || col == 4)) || (row == 4 && (col == 3 || col == 5)))
+                                blackKingCentered++;
+                            break;
+                    }
+            if (this.gameBoard[1, 0] < 0 && this.gameBoard[0, 1] > 0)
+                this.blackDogHole = 1;
+            else
+                this.blackDogHole = 0;
+            if (this.gameBoard[6, 7] > 0 && this.gameBoard[7, 6] < 0)
+                whiteDogHole = 1;
+            else
+                whiteDogHole = 0;
+            if (this.gameBoard[7, 0] == 2 && this.gameBoard[7, 2] < 0)
+                this.trappedWhiteKing = 1;
+            else
+                this.trappedWhiteKing = 0;
+            if (this.gameBoard[0, 7] == -2 && this.gameBoard[0, 5] > 0)
+                this.trappedBlackKing = 1;
+            else
+                this.trappedBlackKing = 0;
+            if (this.gameBoard[5, 0] == 1 && (this.gameBoard[7, 2] < 0 || this.gameBoard[7, 0] < 0))
+                this.whiteDustHole = 1;
+            else
+                this.whiteDustHole = 0;
+            if (this.gameBoard[2, 7] == -1 && (this.gameBoard[0, 5] > 0 || this.gameBoard[0, 7] > 0))
+                this.blackDustHole = 1;
+            else
+                this.blackDustHole = 0;
+
+        }
+        private void updateLegalMoves()
+        {
+            legalMoves.Clear();
+            for (int row = 0; row < 8; ++row)
+            {
+                for (int col = 0; col < 8; ++col)
+                {
+                    if (this.gameBoard[row, col] == currentPlayer.GetPlayerID())
+                    {
+                        List<Point> path = new List<Point>();
+                        initRow = row;
+                        initCol = col;
+
+                        getMovePaths(row, col, false, true, path, null);
+                        getMovePaths(row, col, false, false, path, null);
+
+                    }
+                    else if (this.gameBoard[row, col] == 2 * currentPlayer.GetPlayerID())
+                    {
+                        List<Point> path = new List<Point>();
+                        initRow = row;
+                        initCol = col;
+                        gameBoard[row, col] = 0;
+                        getMovePaths(row, col, true, true, path, new Point(row, col));
+                        getMovePaths(row, col, true, false, path, new Point(row, col));
+                        gameBoard[row, col] = 2 * currentPlayer.GetPlayerID();
+                    }
+
+                }
+            }
+            if (this.legalMoves.Count == 0)
+            {
+                for (int row = 0; row < 8; ++row)
+                    for (int col = 0; col < 8; ++col)
+                    {
+                        if (gameBoard[row, col] == currentPlayer.GetPlayerID() || gameBoard[row, col] == 2 * currentPlayer.GetPlayerID())
+                        {
+                            List<Point> path = new List<Point>();
+                            path.Add(new Point(row, col));
+                            path.Add(hasLeftMove(row, col, currentPlayer.GetPlayerID(), false));
+                            if (path.Count > 1 && path[path.Count - 1] != null)
+                                legalMoves.Add(new CheckersMove(path, false, currentPlayer.GetPlayerID()));
+                            path = new List<Point>();
+                            path.Add(new Point(row, col));
+                            path.Add(hasRightMove(row, col, currentPlayer.GetPlayerID(), false));
+                            if (path.Count > 1 && path[path.Count - 1] != null)
+                                legalMoves.Add(new CheckersMove(path, false, currentPlayer.GetPlayerID()));
+                            path = new List<Point>();
+
+                            if (gameBoard[row, col] == 2 * currentPlayer.GetPlayerID())
+                            {
+                                path.Add(new Point(row, col));
+                                path.Add(hasRightMove(row, col, currentPlayer.GetPlayerID(), true));
+                                if (path.Count > 1 && path[path.Count - 1] != null)
+                                    legalMoves.Add(new CheckersMove(path, false, currentPlayer.GetPlayerID()));
+                                path = new List<Point>();
+                                path.Add(new Point(row, col));
+                                path.Add(hasLeftMove(row, col, currentPlayer.GetPlayerID(), true));
+                                if (path.Count > 1 && path[path.Count - 1] != null)
+                                    legalMoves.Add(new CheckersMove(path, false, currentPlayer.GetPlayerID()));
+                            }
+                        }
+                    }
+
+            }
+            if (legalMoves.Count == 0)
+            {
+                if (GameOver != null)
+                {
+                    GameOver.Invoke();
+                }
+
+            }
+        }
+        private bool hasBeenThere(Point point, List<Point> path)
+        {
+
+            foreach (var item in path)
+                if (item.IsEqual(point)) return true;
+            return false;
+        }
+        private Point hasLeftJump(int row, int col, int player, bool king)
+        {
+            if (player > 0)
+            {
+                if (!king)
+                {
+                    if (row + 2 < 8 && col - 2 >= 0 && gameBoard[row + 1, col - 1] < 0 && gameBoard[row + 2, col - 2] == CheckersBoard.Empty)
+                        return new Point(row + 2, col - 2);
+                }
+                else
+                {
+                    if (row - 2 >= 0 && col - 2 >= 0 && gameBoard[row - 1, col - 1] < 0 && gameBoard[row - 2, col - 2] == CheckersBoard.Empty)
+                        return new Point(row - 2, col - 2);
+                }
+            }
+            else
+            {
+                if (!king)
+                {
+                    if (row - 2 >= 0 && col - 2 >= 0 && gameBoard[row - 1, col - 1] > 0 && gameBoard[row - 2, col - 2] == CheckersBoard.Empty)
+                        return new Point(row - 2, col - 2);
+                }
+                else
+                {
+                    if (row + 2 < 8 && col - 2 >= 0 && gameBoard[row + 1, col - 1] > 0 && gameBoard[row + 2, col - 2] == CheckersBoard.Empty)
+                        return new Point(row + 2, col - 2); ;
+                }
+            }
+            return null;
+        }
+        private Point hasRightJump(int row, int col, int player, bool king)
+        {
+            if (player > 0)
+            {
+                if (!king)
+                {
+                    if (row + 2 < 8 && col + 2 < 8 && gameBoard[row + 1, col + 1] < 0 && gameBoard[row + 2, col + 2] == CheckersBoard.Empty)
+                        return new Point(row + 2, col + 2);
+                }
+                else
+                {
+                    if (row - 2 >= 0 && col + 2 < 8 && gameBoard[row - 1, col + 1] < 0 && gameBoard[row - 2, col + 2] == CheckersBoard.Empty)
+                        return new Point(row - 2, col + 2);
+
+                }
+            }
+            else
+            {
+                if (!king)
+                {
+                    if (row - 2 >= 0 && col + 2 < 8 && gameBoard[row - 1, col + 1] > 0 && gameBoard[row - 2, col + 2] == CheckersBoard.Empty)
+                        return new Point(row - 2, col + 2);
+                }
+                else
+                {
+                    if (row + 2 < 8 && col + 2 < 8 && gameBoard[row + 1, col + 1] > 0 && gameBoard[row + 2, col + 2] == CheckersBoard.Empty)
+                        return new Point(row + 2, col + 2);
+                }
+            }
+            return null;
+        }
+        private Point hasRightMove(int row, int col, int player, bool king)
+        {
+            if (player > 0)
+            {
+                if (!king)
+                {
+                    if (row + 1 < 8 && col + 1 < 8 && gameBoard[row + 1, col + 1] == CheckersBoard.Empty)
+                        return new Point(row + 1, col + 1);
+                }
+                else
+                {
+                    if (row - 1 >= 0 && col + 1 < 8 && gameBoard[row - 1, col + 1] == CheckersBoard.Empty)
+                        return new Point(row - 1, col + 1);
+
+                }
+            }
+            else
+            {
+                if (!king)
+                {
+                    if (row - 1 >= 0 && col + 1 < 8 && gameBoard[row - 1, col + 1] == CheckersBoard.Empty)
+                        return new Point(row - 1, col + 1);
+                }
+                else
+                {
+                    if (row + 1 < 8 && col + 1 < 8 && gameBoard[row + 1, col + 1] == CheckersBoard.Empty)
+                        return new Point(row + 1, col + 1);
+                }
+            }
+            return null;
+
+        }
+        private Point hasLeftMove(int row, int col, int player, bool king)
+        {
+            if (player > 0)
+            {
+                if (!king)
+                {
+                    if (row + 1 < 8 && col - 1 >= 0 && gameBoard[row + 1, col - 1] == CheckersBoard.Empty)
+                        return new Point(row + 1, col - 1);
+                }
+                else
+                {
+                    if (row - 1 >= 0 && col - 1 >= 0 && gameBoard[row - 1, col - 1] == CheckersBoard.Empty)
+                        return new Point(row - 1, col - 1);
+                }
+            }
+            else
+            {
+                if (!king)
+                {
+                    if (row - 1 >= 0 && col - 1 >= 0 && gameBoard[row - 1, col - 1] == CheckersBoard.Empty)
+                        return new Point(row - 1, col - 1);
+                }
+                else
+                {
+                    if (row + 1 < 8 && col - 1 >= 0 && gameBoard[row + 1, col - 1] == CheckersBoard.Empty)
+                        return new Point(row + 1, col - 1); ;
+                }
+            }
+            return null;
+        }
+        private bool getMovePaths(int row, int col, bool king, bool left, List<Point> path, Point backMove)
+        {
+            Point leftJump;
+            Point rightJump;
+            Point leftKingJump, rightKingJump;
+            if (!king)
+            {
+                leftJump = hasLeftJump(row, col, currentPlayer.GetPlayerID(), false);
+                rightJump = hasRightJump(row, col, currentPlayer.GetPlayerID(), false);
+                if (path.Count > 0)
+                {
+                    if (leftJump == null && rightJump == null)
+                    {
+                        List<Point> newPath = new List<Point>();
+                        newPath.Insert(0, new Point(initRow, initCol));
+                        foreach (var item in path)
+                            newPath.Add(item);
+                        this.legalMoves.Add(new CheckersMove(newPath, true, currentPlayer.GetPlayerID()));
+                        return true;
+                    }
+
+                }
+                if (left)
+                {
+
+                    if (leftJump != null)
+                    {
+                        path.Add(leftJump);
+                        bool isLeaf = getMovePaths(leftJump.X, leftJump.Y, king, true, path, null);
+                        if (!isLeaf)
+                            getMovePaths(leftJump.X, leftJump.Y, king, false, path, null);
+                        path.Remove(leftJump);
+                    }
+
+                }
+                else
+                {
+                    if (rightJump != null)
+                    {
+                        path.Add(rightJump);
+                        bool isLeaf = getMovePaths(rightJump.X, rightJump.Y, king, true, path, null);
+                        if (!isLeaf)
+                            getMovePaths(rightJump.X, rightJump.Y, king, false, path, null);
+                        path.Remove(rightJump);
+                    }
+                }
+            }
+            else
+            {
+                leftJump = hasLeftJump(row, col, currentPlayer.GetPlayerID(), false);
+                rightJump = hasRightJump(row, col, currentPlayer.GetPlayerID(), false);
+                leftKingJump = hasLeftJump(row, col, currentPlayer.GetPlayerID(), true);
+                rightKingJump = hasRightJump(row, col, currentPlayer.GetPlayerID(), true);
+                if ((leftJump != null && hasBeenThere(leftJump, path)) ||
+                    (leftJump != null && backMove != null && backMove.IsEqual(leftJump)))
+                    leftJump = null;
+                if ((leftKingJump != null && hasBeenThere(leftKingJump, path)) ||
+                    (leftKingJump != null && backMove != null && backMove.IsEqual(leftKingJump)))
+                    leftKingJump = null;
+                if ((rightJump != null && hasBeenThere(rightJump, path)) ||
+                    (rightJump != null && backMove != null && backMove.IsEqual(rightJump)))
+                    rightJump = null;
+                if ((rightKingJump != null && hasBeenThere(rightKingJump, path)) ||
+                    (rightKingJump != null && backMove != null && backMove.IsEqual(rightKingJump)))
+                    rightKingJump = null;
+                if (path.Count > 0)
+                {
+                    if (leftJump == null && rightJump == null && leftKingJump == null && rightKingJump == null)
+                    {
+                        List<Point> newPath = new List<Point>();
+                        newPath.Insert(0, new Point(initRow, initCol));
+                        foreach (var item in path)
+                            newPath.Add(item);
+                        this.legalMoves.Add(new CheckersMove(newPath, true, currentPlayer.GetPlayerID()));
+                        return true;
+                    }
+
+                }
+                if (left)
+                {
+
+                    if (leftJump != null)
+                    {
+                        path.Add(leftJump);
+                        bool isLeaf = getMovePaths(leftJump.X, leftJump.Y, king, true, path, new Point(row, col));
+                        if (!isLeaf)
+                        {
+                            getMovePaths(leftJump.X, leftJump.Y, king, false, path, new Point(row, col));
+                        }
+                        path.Remove(leftJump);
+                    }
+                    if (leftKingJump != null)
+                    {
+                        path.Add(leftKingJump);
+                        bool isLeaf = getMovePaths(leftKingJump.X, leftKingJump.Y, king, true, path, new Point(row, col));
+                        if (!isLeaf)
+                        {
+                            getMovePaths(leftKingJump.X, leftKingJump.Y, king, false, path, new Point(row, col));
+                        }
+                        path.Remove(leftKingJump);
+
+                    }
+                }
+                else
+                {
+                    if (rightJump != null)
+                    {
+                        path.Add(rightJump);
+                        bool isLeaf = getMovePaths(rightJump.X, rightJump.Y, king, true, path, new Point(row, col));
+                        if (!isLeaf)
+                            getMovePaths(rightJump.X, rightJump.Y, king, false, path, new Point(row, col));
+                        path.Remove(rightJump);
+                    }
+                    if (rightKingJump != null)
+                    {
+                        path.Add(rightKingJump);
+                        bool isLeaf = getMovePaths(rightKingJump.X, rightKingJump.Y, king, true, path, new Point(row, col));
+                        if (!isLeaf)
+                            getMovePaths(rightKingJump.X, rightKingJump.Y, king, false, path, new Point(row, col));
+                        path.Remove(rightKingJump);
+
+                    }
+                }
+            }
+            return false;
+
+        }
+       
+        private void updatePieces()
+        {
+            for (int i = 0; i < 8; ++i)
+            {
+                if (gameBoard[0, i] == -1) gameBoard[0, i] = CheckersBoard.BlackKing;
+                if (gameBoard[7, i] == 1) gameBoard[7, i] = CheckersBoard.WhiteKing;
+            }
+        }
+        #endregion
+        #region Public Methods
+   
+        #region IBoardGame Members
+
+        public List<IMove> GetLegalMoves()
+        {
+            
+            List<IMove> list = new List<IMove>();
+            foreach (var item in legalMoves)
+                list.Add(item as IMove);
+            return list;
+        }
+
+        public List<IMove> GetLegalMoves(IPlayer player)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IBoardGame TestMove(IMove move)
+        {
+            CheckersBoard board = new CheckersBoard(this, false);
+            board.MakeMove(move);
+            return board;
+        }
+
+        public int EvaluatePosition(IBoardGame lastBoardPosition)
+        {
+            throw new NotImplementedException();
+        }
+        public IMove EvaluatePosition()
+        {
+            CheckersMove move = new CheckersMove(null, false, this.currentPlayer.GetPlayerID());
+            if (this.gameOver)
+            {
+                if (currentPlayer.GetPlayerID() == Winner)
+                {
+
+                    move.SetMoveScore(double.MaxValue );
+                }
+                else
+                {
+                    move.SetMoveScore(double.MinValue);
+
+                }
+                return move as IMove;
+            }
+            double finalScore = 0;
+
+            if (currentPlayer.GetPlayerID() == 1)
+            {
+                finalScore = this.whitePieceCount * this.weights[0] + this.whiteKingcount * this.weights[1]
+                    - this.blackKingCount * this.weights[1] - this.blackPieceCount * this.weights[0];
+                finalScore += (whiteSidePieces - blackSidePieces) * this.weights[2];
+                if (whitePieceCount > 0)
+                    finalScore += (-whiteKingBlocked) * weights[3];
+                if (blackPieceCount > 0)
+                    finalScore += (blackKingBlocked) * weights[3];
+                finalScore += (-whiteDogHole) * weights[4];
+                finalScore += (blackDogHole) * weights[4];
+                finalScore += this.legalMoves.Count * weights[5];
+                finalScore += weights[6];
+                finalScore += -trappedWhiteKing * weights[7];
+                finalScore += trappedBlackKing * weights[7];
+                finalScore += -whiteDustHole * weights[8];
+                finalScore += blackDustHole * weights[8];
+                finalScore += whiteKingCentered * weights[9];
+                finalScore += -blackKingCentered * weights[9];
+                finalScore += whitePieceCentered * weights[10];
+                finalScore += -blackPieceCentered * weights[10];
+                move.SetMoveScore(finalScore);
+            }
+            else
+            {
+
+                finalScore = -this.whitePieceCount * this.weights[0] - this.whiteKingcount * this.weights[1]
+                    + this.blackKingCount * this.weights[1] + this.blackPieceCount * this.weights[0];
+                finalScore += (blackSidePieces - whiteSidePieces) * this.weights[2];
+                if (whitePieceCount > 0)
+                    finalScore += (whiteKingBlocked) * weights[3];
+                if (blackPieceCount > 0)
+                    finalScore += (-blackKingBlocked) * weights[3];
+                finalScore += (whiteDogHole) * weights[4];
+                finalScore += (-blackDogHole) * weights[4];
+                finalScore += this.legalMoves.Count * weights[5];
+                finalScore += weights[6];
+                finalScore += trappedWhiteKing * weights[7];
+                finalScore += -trappedBlackKing * weights[7];
+                finalScore += whiteDustHole * weights[8];
+                finalScore += -blackDustHole * weights[8];
+                finalScore += -whiteKingCentered * weights[9];
+                finalScore += blackKingCentered * weights[9];
+                finalScore += -whitePieceCentered * weights[10];
+                finalScore += blackPieceCentered * weights[10];
+                move.SetMoveScore(finalScore);
+            }
+            return move as IMove;
+
+        }
+
+        public IPlayer GetCurrentPlayer()
+        {
+
+            return currentPlayer;
+        }
+
+        public bool GameIsOver()
+        {
+            return gameOver;
+        }
+
+        #endregion
+        public void SetForNewGame()
+        {
+            currentPlayer = players[0];
+            gameBoard = new int[8, 8];
+            gameBoard[0, 1] = CheckersBoard.WhitePiece;
+            gameBoard[0, 3] = CheckersBoard.WhitePiece;
+            gameBoard[0, 5] = CheckersBoard.WhitePiece;
+            gameBoard[0, 7] = CheckersBoard.WhitePiece;
+            gameBoard[1, 0] = CheckersBoard.WhitePiece;
+            gameBoard[1, 2] = CheckersBoard.WhitePiece;
+            gameBoard[1, 4] = CheckersBoard.WhitePiece;
+            gameBoard[1, 6] = CheckersBoard.WhitePiece;
+            gameBoard[2, 1] = CheckersBoard.WhitePiece;
+            gameBoard[2, 3] = CheckersBoard.WhitePiece;
+            gameBoard[2, 5] = CheckersBoard.WhitePiece;
+            gameBoard[2, 7] = CheckersBoard.WhitePiece;
+            gameBoard[5, 0] = CheckersBoard.BlackPiece;
+            gameBoard[5, 2] = CheckersBoard.BlackPiece;
+            gameBoard[5, 4] = CheckersBoard.BlackPiece;
+            gameBoard[5, 6] = CheckersBoard.BlackPiece;
+            gameBoard[6, 1] = CheckersBoard.BlackPiece;
+            gameBoard[6, 3] = CheckersBoard.BlackPiece;
+            gameBoard[6, 5] = CheckersBoard.BlackPiece;
+            gameBoard[6, 7] = CheckersBoard.BlackPiece;
+            gameBoard[7, 0] = CheckersBoard.BlackPiece;
+            gameBoard[7, 2] = CheckersBoard.BlackPiece;
+            gameBoard[7, 4] = CheckersBoard.BlackPiece;
+            gameBoard[7, 6] = CheckersBoard.BlackPiece;
+            this.updateLegalMoves();
+            this.updateCounters();
+
+        }
+        public void MakeMove(IMove move)
+        {
+            CheckersMove chMove = move as CheckersMove;
+            if (chMove == null) throw new ArgumentException("This is not a checkers move!");
+            List<Point> path = chMove.GetPath();
+            int pieceType = gameBoard[path[0].X, path[0].Y];
+            gameBoard[path[0].X, path[0].Y] = CheckersBoard.Empty;
+            gameBoard[path[path.Count - 1].X, path[path.Count - 1].Y] = pieceType;
+            if (chMove.IsJump)
+            {
+
+                for (int index = 1; index < path.Count; ++index)
+                {
+                    int rowDifference = path[index].X - path[index - 1].X;
+                    int colDifference = path[index].Y - path[index - 1].Y;
+                    Point removedPiece = new Point();
+                    if (rowDifference > 0)
+                        removedPiece.X = path[index].X - 1;
+
+                    else
+                        removedPiece.X = path[index].X + 1;
+                    if (colDifference > 0)
+                        removedPiece.Y = path[index].Y - 1;
+                    else
+                        removedPiece.Y = path[index].Y + 1;
+                    gameBoard[removedPiece.X, removedPiece.Y] = CheckersBoard.Empty;
+                }
+
+            }
+            this.completedMovesCount++;
+            if (this.completedMovesCount < GameMaxLength)
+                this.ChangePlayer();
+            else
+                if (GameOver != null) GameOver.Invoke();
+
+
+        }
+        public void ChangePlayer()
+        {
+            if (currentPlayer.GetPlayerID() == 1)
+                currentPlayer = players[0];
+            else
+            {
+                currentPlayer = players[1];
+            }
+            this.updatePieces();
+            this.updateLegalMoves();
+            this.updateCounters();
+        }
+        public List<CheckersMove> GetMovesForPiece(int row, int col)
+        {
+            List<CheckersMove> moves = new List<CheckersMove>();
+            Point pieceCoords = new Point(row, col);
+            foreach (var item in this.legalMoves)
+            {
+                if (pieceCoords.IsEqual(item.GetPiece()))
+                    moves.Add(item);
+            }
+            return moves;
+
+        }
+       
+        #endregion
+        #region GettersAndSetters
+        public int GameMaxLength { get; set; }
+        public int GetPiece(int row, int col)
+        {
+            return this.gameBoard[row, col];
+        }
+        public int[,] Board
+        {
+            get { return this.gameBoard; }
+        }
+        public double BlackPieces
+        {
+            get { return blackPieceCount + blackKingCount; }
+        }
+        public double WhitePieces
+        {
+            get { return whitePieceCount + whiteKingcount; }
+        }
+        #endregion
+    }
+}

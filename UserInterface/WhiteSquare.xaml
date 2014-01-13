@@ -1,0 +1,17 @@
+﻿<UserControl
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d"
+	x:Class="UserInterface.WhiteSquare"
+	x:Name="UserControl"
+	d:DesignWidth="640" d:DesignHeight="480">
+	<UserControl.Resources>
+		<ImageBrush x:Key="WhiteBrush" ImageSource="WhiteSquare.png"/>
+	</UserControl.Resources>
+
+	<Grid x:Name="LayoutRoot">
+		<Rectangle Stroke="{DynamicResource WhiteBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" Height="50" Fill="{DynamicResource WhiteBrush}" OpacityMask="{DynamicResource WhiteBrush}"/>
+	</Grid>
+</UserControl>
