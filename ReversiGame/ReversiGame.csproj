@@ -55,6 +55,7 @@
     <Compile Include="ReversiBoard.cs" />
     <Compile Include="ReversiMove.cs" />
     <Compile Include="ReversiPlayer.cs" />
+    <Compile Include="Useless.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GameAI\GameAI.csproj">
