@@ -1,4 +1,6 @@
-This is a project I started in 2008 as part of my first Master's thesis. 
+This is a project I started in 2008 as part of my first Master's thesis. I've worked on and 
+off it since. I think the last updates were made in 2012 when I conducted some experiments for
+I paper I wrote.
 
 The scope was to implement a checkers and a reversi game and build an AI for them. 
 I eneded up evolving the checkers AI using genetic algorithms.
